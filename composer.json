@@ -1,5 +1,5 @@
 {
-    "name": "hughcube/purl",
+    "name": "hughcube/htree",
     "description": "url",
     "license": "MIT",
     "authors": [
@@ -18,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "HughCube\\PUrl\\": "src"
+            "HughCube\\HTree\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "HughCube\\PUrl\\Tests\\": "tests"
+            "HughCube\\HTree\\Tests\\": "tests"
         }
     },
     "scripts": {

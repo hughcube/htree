@@ -1,6 +1,6 @@
 <?php
 
-namespace HughCube\PUrl\Exceptions;
+namespace HughCube\HTree\Exceptions;
 
 /**
  * Interface ExceptionInterface

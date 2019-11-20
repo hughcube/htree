@@ -1,6 +1,6 @@
 <?php
 $header = <<<EOF
-This file is part of the hughcube/purl.
+This file is part of the hughcube/htree.
 
 (c) hugh.li <hugh.li@foxmail.com>
 

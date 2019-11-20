@@ -1,13 +1,12 @@
 <?php
 
-namespace HughCube\PUrl\Exceptions;
-
-use InvalidArgumentException as Exception;
+namespace HughCube\HTree\Exceptions;
 
 /**
  * Class InvalidArgumentException
- * @package HughCube\PUrl\Exceptions
+ * @package HughCube\HTree\Exceptions
  */
-class InvalidArgumentException extends Exception implements ExceptionInterface
+class InvalidArgumentException
+    extends \InvalidArgumentException implements ExceptionInterface
 {
 }
