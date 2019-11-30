@@ -19,8 +19,8 @@ class HTreeTest extends TestCase
         }
 
         $this->assertInstanceOf(UnableBuildTreeException::class, $exception);
-        $this->assertIsArray($exception->getBadIds());
-        $this->assertFalse(empty($exception->getBadIds()));
+        $this->assertIsArray($exception->getBadNodeIds());
+        $this->assertFalse(empty($exception->getBadNodeIds()));
     }
 
     /**

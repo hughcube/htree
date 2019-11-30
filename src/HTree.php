@@ -204,8 +204,7 @@ class HTree
         /** 收集所有的子节点 */
         foreach ($parents as $parent) {
             foreach ($this->indexes as $index) {
-                if (
-                    $index->left > $this->indexes[$parent]->left
+                if ($index->left > $this->indexes[$parent]->left
                     && $index->right < $this->indexes[$parent]->right
                 ) {
                     $nodes[$id] = $this->items[$id];
@@ -216,8 +215,7 @@ class HTree
         /** 过滤不符合的节点 */
         foreach ($nodes as $id => $node) {
             $level = $this->indexes[$id]->level;
-            if (
-                (null === $startLevel || $startLevel <= $level)
+            if ((null === $startLevel || $startLevel <= $level)
                 && (null === $endLevel || $endLevel >= $level)
             ) {
                 continue;
@@ -297,8 +295,7 @@ class HTree
 
         if ($this->hasItem($nid)) {
             foreach ($this->indexes as $id => $index) {
-                if (
-                    $index->left < $this->indexes[$nid]->left
+                if ($index->left < $this->indexes[$nid]->left
                     && $index->right > $this->indexes[$nid]->right
                 ) {
                     $nodes[$id] = $this->items[$id];
@@ -308,8 +305,7 @@ class HTree
 
         foreach ($nodes as $id => $node) {
             $level = $this->indexes[$id]->level;
-            if (
-                (null === $startLevel || $startLevel <= $level)
+            if ((null === $startLevel || $startLevel <= $level)
                 && (null === $endLevel || $endLevel >= $level)
             ) {
                 continue;
