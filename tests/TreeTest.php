@@ -198,7 +198,7 @@ class HTreeTest extends TestCase
      */
     protected function randNonExistId()
     {
-        return md5(serialize([microtime(), random_int(1, 999999999999)]));
+        return md5(serialize([microtime(), rand(1, 999999999999)]));
     }
 
     protected function getBadItems()
