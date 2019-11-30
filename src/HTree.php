@@ -12,44 +12,45 @@ class HTree
     protected $items = [];
 
     /**
-     * items的id的key
+     * items的id的key.
      *
      * @var string
      */
     protected $idKey;
 
     /**
-     * items的parent的key
+     * items的parent的key.
      *
      * @var string
      */
     protected $parentKey;
 
     /**
-     * items 数据的索引
+     * items 数据的索引.
      *
      * @var Index[]
      */
     protected $indexes = [];
 
     /**
-     * index的tree
+     * index的tree.
      *
      * @var Index[]
      */
     protected $indexTree;
 
     /**
-     * 正在构建的 item
+     * 正在构建的 item.
      *
      * @var array
      */
     protected $buildIndexInProcess = [];
 
     /**
-     * 获取实例
+     * 获取实例.
      *
      * @param string $url
+     *
      * @return static
      */
     public static function instance(
@@ -62,8 +63,9 @@ class HTree
 
     /**
      * Tree constructor.
-     * @param array $items 构建树形结构的数组, 每个元素必需包含 id, parent 两个属性
-     * @param string $idKey id属性的名字
+     *
+     * @param array  $items     构建树形结构的数组, 每个元素必需包含 id, parent 两个属性
+     * @param string $idKey     id属性的名字
      * @param string $parentKey parent属性的名字
      */
     protected function __construct(array $items, $idKey, $parentKey)
@@ -75,7 +77,7 @@ class HTree
     }
 
     /**
-     * 获取items
+     * 获取items.
      *
      * @return array
      */
@@ -85,9 +87,10 @@ class HTree
     }
 
     /**
-     * 获取单个节点数据
+     * 获取单个节点数据.
      *
      * @param string $id id
+     *
      * @return mixed|null
      */
     public function getItem($id)
@@ -96,9 +99,10 @@ class HTree
     }
 
     /**
-     * 是否存在某个节点数据
+     * 是否存在某个节点数据.
      *
      * @param string $id id
+     *
      * @return bool
      */
     public function hasItem($id)
@@ -107,7 +111,7 @@ class HTree
     }
 
     /**
-     * 添加一个节点
+     * 添加一个节点.
      *
      * @param array|object $node 节点数据
      *
@@ -120,7 +124,7 @@ class HTree
     }
 
     /**
-     * 推送一个节点到树形结构
+     * 推送一个节点到树形结构.
      *
      * @param $node
      */
@@ -138,7 +142,7 @@ class HTree
             $pLevel = $this->indexes[$parent]->level;
         }
 
-        /** 改变其他元素的, 给当前节点留出位置 */
+        /* 改变其他元素的, 给当前节点留出位置 */
         foreach ($this->indexes as $index) {
             if ($index->left > $pLeft) {
                 $index->left += 2;
@@ -150,16 +154,16 @@ class HTree
         }
 
         $this->indexes[$id] = new Index([
-            'id' => $id,
-            'level' => $pLevel + 1,
-            'left' => $pLeft + 1,
-            'right' => ($pLeft + 1) + 1,
+            'id'     => $id,
+            'level'  => $pLevel + 1,
+            'left'   => $pLeft + 1,
+            'right'  => ($pLeft + 1) + 1,
             'parent' => $parent,
         ]);
     }
 
     /**
-     * 构建 index 的树形结构
+     * 构建 index 的树形结构.
      */
     protected function buildIndexTree()
     {
@@ -173,15 +177,15 @@ class HTree
         }
     }
 
-
     /**
-     * 获取节点的子节点
+     * 获取节点的子节点.
      *
-     * @param string $nid 节点id
-     * @param bool $onlyId 是否只返回 id
-     * @param null|integer $startLevel 往下多少级-起始, 为空不限制
-     * @param null|integer $endLevel 往下多少级-结束, 为空不限制
-     * @param bool $withSelf 结果是否包括自己
+     * @param string   $nid        节点id
+     * @param bool     $onlyId     是否只返回 id
+     * @param null|int $startLevel 往下多少级-起始, 为空不限制
+     * @param null|int $endLevel   往下多少级-结束, 为空不限制
+     * @param bool     $withSelf   结果是否包括自己
+     *
      * @return array
      */
     public function getChildren(
@@ -193,7 +197,7 @@ class HTree
     ) {
         $nodes = $parents = [];
 
-        /** 先收集一次, 防止父 $nid 不存在不能被收集 */
+        /* 先收集一次, 防止父 $nid 不存在不能被收集 */
         foreach ($this->items as $id => $item) {
             if ($nid == $this->getNodeProperty($item, $this->parentKey)) {
                 $parents[] = $id;
@@ -201,7 +205,7 @@ class HTree
             }
         }
 
-        /** 收集所有的子节点 */
+        /* 收集所有的子节点 */
         foreach ($parents as $parent) {
             foreach ($this->indexes as $index) {
                 if ($index->left > $this->indexes[$parent]->left
@@ -212,7 +216,7 @@ class HTree
             }
         }
 
-        /** 过滤不符合的节点 */
+        /* 过滤不符合的节点 */
         foreach ($nodes as $id => $node) {
             $level = $this->indexes[$id]->level;
             if ((null === $startLevel || $startLevel <= $level)
@@ -224,12 +228,12 @@ class HTree
             unset($nodes[$id]);
         }
 
-        /** 是否返回自己本身 */
+        /* 是否返回自己本身 */
         if ($withSelf && $this->hasItem($nid)) {
             $nodes[$nid] = $this->getItem($nid);
         }
 
-        /** 排序 */
+        /* 排序 */
         uasort($nodes, function ($a, $b) {
             $aLevel = $this
                 ->getIndex($this->getNodeProperty($a, $this->idKey))->level;
@@ -248,18 +252,19 @@ class HTree
     }
 
     /**
-     * 获取某一节点的父节点
+     * 获取某一节点的父节点.
      *
-     * @param string $nid 节点id
-     * @param bool $onlyId 是否只返回 id
-     * @param null|integer $level 取第几级父节点, 默认取上一级
+     * @param string   $nid    节点id
+     * @param bool     $onlyId 是否只返回 id
+     * @param null|int $level  取第几级父节点, 默认取上一级
+     *
      * @return int|mixed|null|string
      */
     public function getParent($nid, $onlyId = false, $level = null)
     {
         $index = $this->getIndex($nid);
         if (!$index instanceof Index) {
-            return null;
+            return;
         }
 
         $level = null === $level ? ($index->level - 1) : $level;
@@ -271,12 +276,13 @@ class HTree
     }
 
     /**
-     * 获取某一节点的所有父节点
+     * 获取某一节点的所有父节点.
      *
-     * @param string $nid 节点id
-     * @param bool $onlyId 是否只返回 id
-     * @param null|integer $startLevel 往上多少级-起始, 为空不限制
-     * @param null|integer $endLevel 往上多少级-结束, 为空不限制
+     * @param string   $nid        节点id
+     * @param bool     $onlyId     是否只返回 id
+     * @param null|int $startLevel 往上多少级-起始, 为空不限制
+     * @param null|int $endLevel   往上多少级-结束, 为空不限制
+     *
      * @return array
      */
     public function getParents(
@@ -288,7 +294,7 @@ class HTree
     ) {
         $nodes = [];
 
-        /** 是否返回自己本身 */
+        /* 是否返回自己本身 */
         if ($withSelf && $this->hasItem($nid)) {
             $nodes[$nid] = $this->getItem($nid);
         }
@@ -314,7 +320,7 @@ class HTree
             unset($nodes[$id]);
         }
 
-        /** 排序 */
+        /* 排序 */
         uasort($nodes, function ($a, $b) {
             $aLevel = $this
                 ->getIndex($this->getNodeProperty($a, $this->idKey))->level;
@@ -333,15 +339,16 @@ class HTree
     }
 
     /**
-     * 树排序
+     * 树排序.
      *
      * @param callable $cmpSortCallable
-     * @param integer $sortType SORT_ASC | SORT_DESC
+     * @param int      $sortType        SORT_ASC | SORT_DESC
+     *
      * @return $this
      *
      * 如果数字很长, 可以填充为相等长度的字符串, 使用0填充
-     * @see https://www.php.net/manual/en/function.strcmp.php
      *
+     * @see https://www.php.net/manual/en/function.strcmp.php
      */
     public function treeSort(callable $cmpSortCallable, $sortType = SORT_ASC)
     {
@@ -357,11 +364,12 @@ class HTree
     }
 
     /**
-     * 递归排序
+     * 递归排序.
      *
-     * @param Index[] $indexes
+     * @param Index[]  $indexes
      * @param callable $cmpSortCallable
-     * @param integer $sortType SORT_ASC | SORT_DESC
+     * @param int      $sortType        SORT_ASC | SORT_DESC
+     *
      * @return Index[]
      */
     protected function recursiveTreeSort(
@@ -400,6 +408,7 @@ class HTree
      * 递归遍历每一个元素, 按照指定的顺, 并且可以改变元素的值
      *
      * @param callable $callable 返回值作为该元素新的值
+     *
      * @return $this
      */
     public function treeMap(callable $callable)
@@ -412,9 +421,9 @@ class HTree
     }
 
     /**
-     * 递归遍历每一个元素
+     * 递归遍历每一个元素.
      *
-     * @param Index[] $indexes
+     * @param Index[]  $indexes
      * @param callable $callable
      */
     protected function recursiveTreeMap($indexes, $callable)
@@ -426,11 +435,12 @@ class HTree
     }
 
     /**
-     * 获取树结构
+     * 获取树结构.
      *
-     * @param string $childrenKey 子集的数组key
-     * @param callable $format 格式化返回的元素
-     * @param boolean $keepEmptyChildrenKey 是否保留空的ChildrenKey
+     * @param string   $childrenKey          子集的数组key
+     * @param callable $format               格式化返回的元素
+     * @param bool     $keepEmptyChildrenKey 是否保留空的ChildrenKey
+     *
      * @return array
      */
     public function getTree(
@@ -447,9 +457,9 @@ class HTree
     }
 
     /**
-     * 递归遍历每一个元素
+     * 递归遍历每一个元素.
      *
-     * @param Index[] $indexes
+     * @param Index[]  $indexes
      * @param callable $callable
      */
     protected function recursiveGetTree(
@@ -470,7 +480,7 @@ class HTree
                 $format,
                 $keepEmptyChildrenKey
             );
-            if (!empty($children) || !!$keepEmptyChildrenKey) {
+            if (!empty($children) || (bool) $keepEmptyChildrenKey) {
                 $node[$childrenKey] = $children;
             }
 
@@ -481,7 +491,7 @@ class HTree
     }
 
     /**
-     * 构建 index
+     * 构建 index.
      */
     protected function buildIndex(array $items)
     {
@@ -503,7 +513,7 @@ class HTree
     }
 
     /**
-     * 递归构建 index
+     * 递归构建 index.
      *
      * @param $id
      */
@@ -518,21 +528,22 @@ class HTree
 
         $this->buildIndexInProcess[$id] = $id;
 
-        /** @var integer $parent 需要处理的节点父节点id */
+        /** @var int $parent 需要处理的节点父节点id */
         $parent = $this->getNodeProperty($items[$id], $this->parentKey);
 
-        /** 如果存在父节点, 并且父节点没有被被处理, 先处理父节点 */
+        /* 如果存在父节点, 并且父节点没有被被处理, 先处理父节点 */
         if (isset($items[$parent]) && !isset($this->indexes[$parent])) {
             $this->recursiveBuildIndex($parent, $items);
         }
 
-        /** 添加节点 */
+        /* 添加节点 */
         $this->pushNodeToTree($items[$id]);
         unset($this->buildIndexInProcess[$id]);
     }
 
     /**
      * @param $id
+     *
      * @return Index
      */
     public function getIndex($id)
@@ -549,10 +560,11 @@ class HTree
     }
 
     /**
-     * 获取数据节点的属性
+     * 获取数据节点的属性.
      *
      * @param array|object $node
-     * @param string $name
+     * @param string       $name
+     *
      * @return mixed
      */
     private function getNodeProperty($node, $name)
