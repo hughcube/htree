@@ -7,12 +7,13 @@ use HughCube\HTree\HTree;
 use HughCube\HTree\Index;
 use PHPUnit\Framework\TestCase;
 
-class HTreeTest extends TestCase
+class TreeTest extends TestCase
 {
     public function testBadItems()
     {
         /** @var UnableBuildTreeException $exception */
         $exception = null;
+
         try {
             HTree::instance($this->getBadItems());
         } catch (\Throwable $exception) {
@@ -47,10 +48,10 @@ class HTreeTest extends TestCase
         }
     }
 
-
     /**
      * @param HTree $tree
      * @dataProvider dataProviderTree
+     *
      * @throws \Exception
      */
     public function testGetItem(HTree $tree)
@@ -65,6 +66,7 @@ class HTreeTest extends TestCase
     /**
      * @param HTree $tree
      * @dataProvider dataProviderTree
+     *
      * @throws \Exception
      */
     public function hasItem(HTree $tree)
@@ -193,8 +195,9 @@ class HTreeTest extends TestCase
     }
 
     /**
-     * @return string
      * @throws
+     *
+     * @return string
      */
     protected function randNonExistId()
     {
@@ -242,11 +245,11 @@ class HTreeTest extends TestCase
     {
         return [
             [
-                HTree::instance($this->getItems(), 'id', 'parent')
+                HTree::instance($this->getItems(), 'id', 'parent'),
             ],
             [
-                HTree::instance(HTree::instance($this->getItems())->getIndexes())
-            ]
+                HTree::instance(HTree::instance($this->getItems())->getIndexes()),
+            ],
         ];
     }
 
