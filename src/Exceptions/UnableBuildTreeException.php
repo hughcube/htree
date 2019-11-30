@@ -5,8 +5,7 @@ namespace HughCube\HTree\Exceptions;
 use Throwable;
 
 /**
- * Class InvalidArgumentException
- * @package HughCube\HTree\Exceptions
+ * Class InvalidArgumentException.
  */
 class UnableBuildTreeException extends InvalidArgumentException
 {
@@ -17,14 +16,15 @@ class UnableBuildTreeException extends InvalidArgumentException
 
     /**
      * UnableBuildTreeException constructor.
-     * @param array $badIds
-     * @param string $message
-     * @param int $code
+     *
+     * @param array          $badIds
+     * @param string         $message
+     * @param int            $code
      * @param Throwable|null $previous
      */
     public function __construct(
         array $badIds,
-        $message = "",
+        $message = '',
         $code = 0,
         Throwable $previous = null
     ) {
@@ -34,7 +34,7 @@ class UnableBuildTreeException extends InvalidArgumentException
     }
 
     /**
-     * @return integer[]|string[]
+     * @return int[]|string[]
      */
     public function getBadNodeIds()
     {

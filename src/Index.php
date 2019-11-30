@@ -5,27 +5,27 @@ namespace HughCube\HTree;
 class Index
 {
     /**
-     * @var integer|string
+     * @var int|string
      */
     public $id;
 
     /**
-     * @var integer
+     * @var int
      */
     public $level;
 
     /**
-     * @var integer
+     * @var int
      */
     public $left;
 
     /**
-     * @var integer
+     * @var int
      */
     public $right;
 
     /**
-     * @var integer|string
+     * @var int|string
      */
     public $parent;
 
