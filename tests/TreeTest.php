@@ -19,7 +19,7 @@ class HTreeTest extends TestCase
         }
 
         $this->assertInstanceOf(UnableBuildTreeException::class, $exception);
-        $this->assertIsArray($exception->getBadNodeIds());
+        $this->assertTrue(is_array($exception->getBadNodeIds()));
         $this->assertFalse(empty($exception->getBadNodeIds()));
     }
 
@@ -172,13 +172,13 @@ class HTreeTest extends TestCase
             $this->assertTrue(isset($items[$index->id]));
 
             $this->assertObjectHasAttribute('level', $index);
-            $this->assertIsInt($index->level);
+            $this->assertTrue(is_int($index->level));
 
             $this->assertObjectHasAttribute('left', $index);
-            $this->assertIsInt($index->left);
+            $this->assertTrue(is_int($index->left));
 
             $this->assertObjectHasAttribute('right', $index);
-            $this->assertIsInt($index->right);
+            $this->assertTrue(is_int($index->right));
 
             $this->assertObjectHasAttribute('parent', $index);
             $this->assertTrue(
