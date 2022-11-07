@@ -211,7 +211,7 @@ class HTree
                 if ($index->left > $this->indexes[$parent]->left
                     && $index->right < $this->indexes[$parent]->right
                 ) {
-                    $nodes[$id] = $this->items[$id];
+                    $nodes[$index->id] = $this->items[$index->id];
                 }
             }
         }
