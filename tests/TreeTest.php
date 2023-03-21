@@ -171,19 +171,19 @@ class TreeTest extends TestCase
 
         foreach ($tree->getItems() as $id => $item) {
             $index = $tree->getIndex($id);
-            $this->assertObjectHasAttribute('id', $index);
+            $this->autoAssertObjectHasAttribute('id', $index);
             $this->assertTrue(isset($items[$index->id]));
 
-            $this->assertObjectHasAttribute('level', $index);
+            $this->autoAssertObjectHasAttribute('level', $index);
             $this->assertTrue(is_int($index->level));
 
-            $this->assertObjectHasAttribute('left', $index);
+            $this->autoAssertObjectHasAttribute('left', $index);
             $this->assertTrue(is_int($index->left));
 
-            $this->assertObjectHasAttribute('right', $index);
+            $this->autoAssertObjectHasAttribute('right', $index);
             $this->assertTrue(is_int($index->right));
 
-            $this->assertObjectHasAttribute('parent', $index);
+            $this->autoAssertObjectHasAttribute('parent', $index);
             $this->assertTrue(
                 null == $index->parent || isset($items[$index->parent])
             );
@@ -281,8 +281,12 @@ class TreeTest extends TestCase
         ];
     }
 
-    public static function assertObjectHasAttribute(string $name, $object, string $message = '')
+    public static function autoAssertObjectHasAttribute(string $name, $object, string $message = ''): bool
     {
+        if (method_exists(static::class, 'assertObjectHasAttribute')) {
+            return static::assertObjectHasAttribute($name, $object, $message);
+        }
+
         if (!is_object($object)) {
             return false;
         }
