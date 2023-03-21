@@ -281,7 +281,7 @@ class TreeTest extends TestCase
         ];
     }
 
-    public static function assertObjectHasAttribute($name, $object): bool
+    public static function assertObjectHasAttribute(string $name, $object, string $message = ''): bool
     {
         if (!is_object($object)) {
             return false;
