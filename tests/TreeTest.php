@@ -281,18 +281,17 @@ class TreeTest extends TestCase
         ];
     }
 
-    public static function autoAssertObjectHasAttribute(string $name, $object, string $message = ''): bool
+    public static function autoAssertObjectHasAttribute(string $name, $object, string $message = '')
     {
         if (method_exists(static::class, 'assertObjectHasAttribute')) {
-            return static::assertObjectHasAttribute($name, $object, $message);
+            static::assertObjectHasAttribute($name, $object, $message);
         }
 
         if (!is_object($object)) {
-            return false;
+            static::assertTrue(false);
         }
 
         $reflection = new ReflectionClass($object);
-
-        return $reflection->hasProperty($name);
+        static::assertTrue($reflection->hasProperty($name));
     }
 }
