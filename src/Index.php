@@ -41,7 +41,7 @@ class Index
         }
     }
 
-    public function addChild(self $index)
+    public function addChild($index)
     {
         $this->children[] = $index;
     }

@@ -49,8 +49,9 @@ class HTree
     /**
      * 获取实例.
      *
-     * @param string $url
-     *
+     * @param  array  $items
+     * @param  int|string  $idKey
+     * @param  int|string  $parentKey
      * @return static
      */
     public static function instance(
@@ -58,15 +59,16 @@ class HTree
         $idKey = 'id',
         $parentKey = 'parent'
     ) {
+        /** @phpstan-ignore-next-line */
         return new static($items, $idKey, $parentKey);
     }
 
     /**
      * Tree constructor.
      *
-     * @param array  $items     构建树形结构的数组, 每个元素必需包含 id, parent 两个属性
-     * @param string $idKey     id属性的名字
-     * @param string $parentKey parent属性的名字
+     * @param  array  $items  构建树形结构的数组, 每个元素必需包含 id, parent 两个属性
+     * @param  string  $idKey  id属性的名字
+     * @param  string  $parentKey  parent属性的名字
      */
     protected function __construct(array $items, $idKey, $parentKey)
     {
@@ -89,7 +91,7 @@ class HTree
     /**
      * 获取单个节点数据.
      *
-     * @param string $id id
+     * @param  string  $id  id
      *
      * @return mixed|null
      */
@@ -101,7 +103,7 @@ class HTree
     /**
      * 是否存在某个节点数据.
      *
-     * @param string $id id
+     * @param  string  $id  id
      *
      * @return bool
      */
@@ -113,14 +115,15 @@ class HTree
     /**
      * 添加一个节点.
      *
-     * @param array|object $node 节点数据
-     *
-     * @return static
+     * @param  array|object  $node  节点数据
+     * @return $this
      */
     public function addNode($node)
     {
         $this->pushNodeToTree($node);
         $this->buildIndexTree();
+
+        return $this;
     }
 
     /**
@@ -154,10 +157,10 @@ class HTree
         }
 
         $this->indexes[$id] = new Index([
-            'id'     => $id,
-            'level'  => $pLevel + 1,
-            'left'   => $pLeft + 1,
-            'right'  => ($pLeft + 1) + 1,
+            'id' => $id,
+            'level' => $pLevel + 1,
+            'left' => $pLeft + 1,
+            'right' => ($pLeft + 1) + 1,
             'parent' => $parent,
         ]);
     }
@@ -180,11 +183,11 @@ class HTree
     /**
      * 获取节点的子节点.
      *
-     * @param string   $nid        节点id
-     * @param bool     $onlyId     是否只返回 id
-     * @param null|int $startLevel 往下多少级-起始, 为空不限制
-     * @param null|int $endLevel   往下多少级-结束, 为空不限制
-     * @param bool     $withSelf   结果是否包括自己
+     * @param  string  $nid  节点id
+     * @param  bool  $onlyId  是否只返回 id
+     * @param  null|int  $startLevel  往下多少级-起始, 为空不限制
+     * @param  null|int  $endLevel  往下多少级-结束, 为空不限制
+     * @param  bool  $withSelf  结果是否包括自己
      *
      * @return array
      */
@@ -254,9 +257,9 @@ class HTree
     /**
      * 获取某一节点的父节点.
      *
-     * @param string   $nid    节点id
-     * @param bool     $onlyId 是否只返回 id
-     * @param null|int $level  取第几级父节点, 默认取上一级
+     * @param  string  $nid  节点id
+     * @param  bool  $onlyId  是否只返回 id
+     * @param  null|int  $level  取第几级父节点, 默认取上一级
      *
      * @return int|mixed|null|string
      */
@@ -278,10 +281,10 @@ class HTree
     /**
      * 获取某一节点的所有父节点.
      *
-     * @param string   $nid        节点id
-     * @param bool     $onlyId     是否只返回 id
-     * @param null|int $startLevel 往上多少级-起始, 为空不限制
-     * @param null|int $endLevel   往上多少级-结束, 为空不限制
+     * @param  string  $nid  节点id
+     * @param  bool  $onlyId  是否只返回 id
+     * @param  null|int  $startLevel  往上多少级-起始, 为空不限制
+     * @param  null|int  $endLevel  往上多少级-结束, 为空不限制
      *
      * @return array
      */
@@ -341,8 +344,8 @@ class HTree
     /**
      * 树排序.
      *
-     * @param callable $cmpSortCallable
-     * @param int      $sortType        SORT_ASC | SORT_DESC
+     * @param  callable  $cmpSortCallable
+     * @param  int  $sortType  SORT_ASC | SORT_DESC
      *
      * @return $this
      *
@@ -366,9 +369,9 @@ class HTree
     /**
      * 递归排序.
      *
-     * @param Index[]  $indexes
-     * @param callable $cmpSortCallable
-     * @param int      $sortType        SORT_ASC | SORT_DESC
+     * @param  Index[]  $indexes
+     * @param  callable  $cmpSortCallable
+     * @param  int  $sortType  SORT_ASC | SORT_DESC
      *
      * @return Index[]
      */
@@ -407,7 +410,7 @@ class HTree
     /**
      * 递归遍历每一个元素, 按照指定的顺, 并且可以改变元素的值
      *
-     * @param callable $callable 返回值作为该元素新的值
+     * @param  callable  $callable  返回值作为该元素新的值
      *
      * @return $this
      */
@@ -423,8 +426,8 @@ class HTree
     /**
      * 递归遍历每一个元素.
      *
-     * @param Index[]  $indexes
-     * @param callable $callable
+     * @param  Index[]  $indexes
+     * @param  callable  $callable
      */
     protected function recursiveTreeMap($indexes, $callable)
     {
@@ -437,9 +440,9 @@ class HTree
     /**
      * 获取树结构.
      *
-     * @param string   $childrenKey          子集的数组key
-     * @param callable $format               格式化返回的元素
-     * @param bool     $keepEmptyChildrenKey 是否保留空的ChildrenKey
+     * @param  string  $childrenKey  子集的数组key
+     * @param  callable  $format  格式化返回的元素
+     * @param  bool  $keepEmptyChildrenKey  是否保留空的ChildrenKey
      *
      * @return array
      */
@@ -459,8 +462,11 @@ class HTree
     /**
      * 递归遍历每一个元素.
      *
-     * @param Index[]  $indexes
-     * @param callable $callable
+     * @param  array  $indexes
+     * @param  int|string  $childrenKey
+     * @param  null|callable  $format
+     * @param bool $keepEmptyChildrenKey
+     * @return array
      */
     protected function recursiveGetTree(
         $indexes,
@@ -480,7 +486,7 @@ class HTree
                 $format,
                 $keepEmptyChildrenKey
             );
-            if (!empty($children) || (bool) $keepEmptyChildrenKey) {
+            if (!empty($children) || (bool)$keepEmptyChildrenKey) {
                 $node[$childrenKey] = $children;
             }
 
@@ -495,7 +501,6 @@ class HTree
      */
     protected function buildIndex(array $items)
     {
-        $this->index = $this->tree =
         $this->indexTree = $this->buildIndexInProcess = [];
 
         $_ = [];
@@ -562,8 +567,8 @@ class HTree
     /**
      * 获取数据节点的属性.
      *
-     * @param array|object $node
-     * @param string       $name
+     * @param  array|object  $node
+     * @param  string  $name
      *
      * @return mixed
      */

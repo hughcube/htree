@@ -9,9 +9,10 @@
         }
     ],
     "require": {
-        "php": ">=7"
+        "php": ">=7.0"
     },
     "require-dev": {
+        "phpstan/phpstan": "*",
         "phpunit/phpunit": "*",
         "squizlabs/php_codesniffer": "*"
     },
@@ -27,8 +28,9 @@
     },
     "scripts": {
         "test": "phpunit",
-        "check-style": "phpcs -p --standard=PSR2 src/",
-        "fix-style": "phpcbf -p --standard=PSR2 src/"
+        "phpstan": "phpstan analyse -vvv --memory-limit=-1 --migrate-configuration",
+        "check-style": "phpcs -p --standard=PSR2 src/ -v",
+        "fix-style": "phpcbf -p --standard=PSR2 src/ -v"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

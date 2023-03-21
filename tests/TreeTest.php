@@ -6,6 +6,7 @@ use HughCube\HTree\Exceptions\UnableBuildTreeException;
 use HughCube\HTree\HTree;
 use HughCube\HTree\Index;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class TreeTest extends TestCase
 {
@@ -25,7 +26,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testInstance(HTree $tree)
@@ -34,7 +35,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testGetItems(HTree $tree)
@@ -49,7 +50,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      *
      * @throws \Exception
@@ -64,7 +65,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      *
      * @throws \Exception
@@ -81,7 +82,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testAddNode(HTree $tree)
@@ -103,7 +104,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testGetChildren(HTree $tree)
@@ -112,7 +113,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testGetParent(HTree $tree)
@@ -121,7 +122,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testGetParents(HTree $tree)
@@ -130,7 +131,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testTreeSort(HTree $tree)
@@ -141,7 +142,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testTreeMap(HTree $tree)
@@ -152,7 +153,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testGetTree(HTree $tree)
@@ -161,7 +162,7 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param HTree $tree
+     * @param  HTree  $tree
      * @dataProvider dataProviderTree
      */
     public function testGetIndex(HTree $tree)
@@ -195,9 +196,9 @@ class TreeTest extends TestCase
     }
 
     /**
+     * @return string
      * @throws
      *
-     * @return string
      */
     protected function randNonExistId()
     {
@@ -238,22 +239,19 @@ class TreeTest extends TestCase
         $this->assertSame($a, $b);
     }
 
-    /**
-     * @return HTree[]
-     */
-    public function dataProviderTree()
+    public static function dataProviderTree()
     {
         return [
             [
-                HTree::instance($this->getItems(), 'id', 'parent'),
+                HTree::instance(static::getItems(), 'id', 'parent'),
             ],
             [
-                HTree::instance(HTree::instance($this->getItems())->getIndexes()),
+                HTree::instance(HTree::instance(static::getItems())->getIndexes()),
             ],
         ];
     }
 
-    protected function getItems()
+    protected static function getItems()
     {
         return [
             /* */ ['id' => 1, 'parent' => 0],
@@ -281,5 +279,16 @@ class TreeTest extends TestCase
             /* */ /* */ ['id' => 23, 'parent' => 1],
             /* */ /* */ ['id' => 24, 'parent' => 1],
         ];
+    }
+
+    protected function assertObjectHasAttribute($name, $object): bool
+    {
+        if (!is_object($object)) {
+            return false;
+        }
+
+        $reflection = new ReflectionClass($object);
+
+        return $reflection->hasProperty($name);
     }
 }
