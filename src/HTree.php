@@ -109,7 +109,7 @@ class HTree
      */
     public function hasItem($id)
     {
-        return null != $this->getItem($id);
+        return array_key_exists($id, $this->items);
     }
 
     /**
@@ -171,6 +171,12 @@ class HTree
     protected function buildIndexTree()
     {
         $this->indexTree = [];
+
+        // 先清空所有 Index 的 children，避免重复添加
+        foreach ($this->indexes as $index) {
+            $index->children = [];
+        }
+
         foreach ($this->indexes as $index) {
             if (isset($this->indexes[$index->parent])) {
                 $this->indexes[$index->parent]->addChild($index);
@@ -347,15 +353,16 @@ class HTree
      * @param  callable  $cmpSortCallable
      * @param  int  $sortType  SORT_ASC | SORT_DESC
      *
-     * @return $this
+     * @return static
      *
      * 如果数字很长, 可以填充为相等长度的字符串, 使用0填充
      *
      * @see https://www.php.net/manual/en/function.strcmp.php
      */
-    public function treeSort(callable $cmpSortCallable, $sortType = SORT_ASC)
+    public function treeSort(callable $cmpSortCallable, $sortType = SORT_DESC)
     {
         $instance = clone $this;
+        $instance->deepCloneIndexes();
 
         $instance->indexTree = $instance->recursiveTreeSort(
             $instance->indexTree,
@@ -364,6 +371,20 @@ class HTree
         );
 
         return $instance;
+    }
+
+    /**
+     * 深拷贝 indexes，避免修改原始对象.
+     */
+    protected function deepCloneIndexes()
+    {
+        $newIndexes = [];
+        foreach ($this->indexes as $id => $index) {
+            $newIndexes[$id] = clone $index;
+            $newIndexes[$id]->children = [];
+        }
+        $this->indexes = $newIndexes;
+        $this->buildIndexTree();
     }
 
     /**
@@ -397,9 +418,9 @@ class HTree
 
                 $cmp = strcmp($aSort, $bSort);
                 if (SORT_ASC == $sortType) {
-                    return (0 == $cmp) ? 0 : ($cmp > 0 ? -1 : 1);
-                } else {
                     return (0 == $cmp) ? 0 : ($cmp > 0 ? 1 : -1);
+                } else {
+                    return (0 == $cmp) ? 0 : ($cmp > 0 ? -1 : 1);
                 }
             }
         );

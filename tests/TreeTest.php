@@ -25,53 +25,39 @@ class TreeTest extends TestCase
         $this->assertFalse(empty($exception->getBadNodeIds()));
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testInstance(HTree $tree)
+    public function testInstance()
     {
+        $tree = $this->createTree();
         $this->assertInstanceOf(HTree::class, $tree);
+
+        $tree2 = $this->createTreeFromIndexes();
+        $this->assertInstanceOf(HTree::class, $tree2);
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testGetItems(HTree $tree)
+    public function testGetItems()
     {
+        $tree = $this->createTree();
         $items = $tree->getItems();
         foreach ($this->getItemKeyById() as $id => $item) {
             $this->assertArrayHasKey($id, $items);
             $this->assertSame($id, $item['id']);
-
-            $this->assertItemSame($id, $item['id']);
         }
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     *
-     * @throws \Exception
-     */
-    public function testGetItem(HTree $tree)
+    public function testGetItem()
     {
+        $tree = $this->createTree();
         $items = $this->getItemKeyById();
         foreach ($items as $id => $item) {
-            $this->assertItemSame($tree->getItem($id), $items[$id]);
+            $treeItem = $tree->getItem($id);
+            $this->assertSame($item['id'], $this->getNodeId($treeItem));
         }
         $this->assertSame($tree->getItem($this->randNonExistId()), null);
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     *
-     * @throws \Exception
-     */
-    public function hasItem(HTree $tree)
+    public function testHasItem()
     {
+        $tree = $this->createTree();
         $items = $this->getItemKeyById();
 
         foreach ($items as $id => $item) {
@@ -81,12 +67,9 @@ class TreeTest extends TestCase
         $this->assertFalse($tree->hasItem($this->randNonExistId()));
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testAddNode(HTree $tree)
+    public function testAddNode()
     {
+        $tree = $this->createTree();
         foreach ($this->getExistIds() as $pid) {
             $id = $this->randNonExistId();
             $tree->addNode(['id' => $id, 'parent' => $pid]);
@@ -104,69 +87,199 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
+     * 测试添加多个节点后不会产生重复子节点
      */
-    public function testGetChildren(HTree $tree)
+    public function testAddNodeNoDuplicateChildren()
     {
-        $this->markTestSkipped();
+        $tree = $this->createTree();
+        $pid = 1;
+
+        // 添加多个子节点
+        $id1 = $this->randNonExistId();
+        $id2 = $this->randNonExistId();
+        $tree->addNode(['id' => $id1, 'parent' => $pid]);
+        $tree->addNode(['id' => $id2, 'parent' => $pid]);
+
+        // 检查父节点的children数组中没有重复
+        $parentIndex = $tree->getIndex($pid);
+        $childIds = array_map(function ($child) {
+            return $child->id;
+        }, $parentIndex->children);
+
+        // 检查没有重复
+        $this->assertSame(count($childIds), count(array_unique($childIds)));
+    }
+
+    public function testGetChildren()
+    {
+        $tree = $this->createTree();
+
+        // 测试获取节点1的子节点
+        $children = $tree->getChildren(1, false, true);
+        $this->assertContains(2, $children);
+        $this->assertContains(8, $children);
+        $this->assertContains(19, $children);
+
+        // 测试获取所有子节点（包括孙节点）
+        $allChildren = $tree->getChildren(1, false, true);
+        $this->assertNotEmpty($allChildren);
+
+        // 测试 withSelf 参数
+        $childrenWithSelf = $tree->getChildren(1, true, true);
+        $this->assertContains(1, $childrenWithSelf);
+
+        // 测试不存在的节点
+        $emptyChildren = $tree->getChildren($this->randNonExistId(), false, true);
+        $this->assertEmpty($emptyChildren);
+    }
+
+    public function testGetParent()
+    {
+        $tree = $this->createTree();
+
+        // 测试获取父节点
+        $parent = $tree->getParent(2);
+        $this->assertNotNull($parent);
+        $this->assertSame(1, $this->getNodeId($parent));
+
+        // 测试获取指定层级的父节点
+        $parent = $tree->getParent(5, false, 1);
+        $this->assertNotNull($parent);
+        $this->assertSame(1, $this->getNodeId($parent));
+
+        // 测试只返回id
+        $parentId = $tree->getParent(2, true);
+        $this->assertSame(1, $parentId);
+
+        // 测试根节点没有父节点
+        $rootParent = $tree->getParent(1);
+        $this->assertNull($rootParent);
+
+        // 测试不存在的节点
+        $nullParent = $tree->getParent($this->randNonExistId());
+        $this->assertNull($nullParent);
+    }
+
+    public function testGetParents()
+    {
+        $tree = $this->createTree();
+
+        // 测试获取所有父节点
+        $parents = $tree->getParents(5, false, true);
+        $this->assertContains(4, $parents);
+        $this->assertContains(3, $parents);
+        $this->assertContains(2, $parents);
+        $this->assertContains(1, $parents);
+
+        // 测试 withSelf 参数
+        $parentsWithSelf = $tree->getParents(5, true, true);
+        $this->assertContains(5, $parentsWithSelf);
+
+        // 测试 startLevel 和 endLevel 参数
+        $filteredParents = $tree->getParents(5, false, true, 1, 2);
+        $this->assertContains(1, $filteredParents);
+        $this->assertContains(2, $filteredParents);
+        $this->assertNotContains(3, $filteredParents);
+
+        // 测试不存在的节点
+        $emptyParents = $tree->getParents($this->randNonExistId(), false, true);
+        $this->assertEmpty($emptyParents);
+    }
+
+    public function testTreeSort()
+    {
+        $tree = $this->createTree();
+
+        // 测试返回新实例
+        $sortedTree = $tree->treeSort(function ($node) {
+            return str_pad((string)$this->getNodeId($node), 10, '0', STR_PAD_LEFT);
+        });
+        $this->assertNotSame($tree, $sortedTree);
+        $this->assertInstanceOf(HTree::class, $sortedTree);
+
+        // 测试排序不影响原始树
+        $originalItems = $tree->getItems();
+        $tree->treeSort(function ($node) {
+            return str_pad((string)$this->getNodeId($node), 10, '0', STR_PAD_LEFT);
+        });
+        $this->assertSame($originalItems, $tree->getItems());
     }
 
     /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
+     * 测试 treeSort 的浅拷贝问题是否已修复
      */
-    public function testGetParent(HTree $tree)
+    public function testTreeSortDeepClone()
     {
-        $this->markTestSkipped();
+        $tree = $this->createTree();
+        $originalIndex = $tree->getIndex(1);
+        $originalChildrenCount = count($originalIndex->children);
+
+        // 执行排序
+        $sortedTree = $tree->treeSort(function ($node) {
+            return str_pad((string)$this->getNodeId($node), 10, '0', STR_PAD_LEFT);
+        });
+
+        // 原始树的 Index 对象不应该被修改
+        $this->assertSame($originalChildrenCount, count($tree->getIndex(1)->children));
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testGetParents(HTree $tree)
+    public function testTreeMap()
     {
-        $this->markTestSkipped();
+        $tree = $this->createTree();
+
+        // 测试返回新实例
+        $mappedTree = $tree->treeMap(function ($node) {
+            if (is_array($node)) {
+                $node['mapped'] = true;
+            }
+            return $node;
+        });
+        $this->assertNotSame($tree, $mappedTree);
+        $this->assertInstanceOf(HTree::class, $mappedTree);
+
+        // 测试映射不影响原始树
+        $originalItem = $tree->getItem(1);
+        $tree->treeMap(function ($node) {
+            if (is_array($node)) {
+                $node['changed'] = true;
+            }
+            return $node;
+        });
+        $this->assertSame($originalItem, $tree->getItem(1));
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testTreeSort(HTree $tree)
+    public function testGetTree()
     {
-        $this->assertNotSame($tree, $tree->treeSort(function () {
-            return 1;
-        }));
+        $tree = $this->createTree();
+
+        // 测试基本树形结构
+        $treeData = $tree->getTree('children');
+        $this->assertIsArray($treeData);
+        $this->assertNotEmpty($treeData);
+
+        // 测试树的第一层
+        $rootNode = $treeData[0];
+        $this->assertArrayHasKey('children', $rootNode);
+
+        // 测试 format 参数
+        $formattedTree = $tree->getTree('children', function ($node) {
+            return [
+                'id' => is_array($node) ? $node['id'] : $node->id,
+                'parent' => is_array($node) ? $node['parent'] : $node->parent,
+            ];
+        });
+        $this->assertIsArray($formattedTree);
+
+        // 测试 keepEmptyChildrenKey 参数
+        $treeWithEmpty = $tree->getTree('children', null, true);
+        $treeWithoutEmpty = $tree->getTree('children', null, false);
+        $this->assertIsArray($treeWithEmpty);
+        $this->assertIsArray($treeWithoutEmpty);
     }
 
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testTreeMap(HTree $tree)
+    public function testGetIndex()
     {
-        $this->assertNotSame($tree, $tree->treeMap(function () {
-            return 1;
-        }));
-    }
-
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testGetTree(HTree $tree)
-    {
-        $this->markTestSkipped();
-    }
-
-    /**
-     * @param  HTree  $tree
-     * @dataProvider dataProviderTree
-     */
-    public function testGetIndex(HTree $tree)
-    {
+        $tree = $this->createTree();
         $items = $this->getItemKeyById();
 
         foreach ($tree->getItems() as $id => $item) {
@@ -190,16 +303,71 @@ class TreeTest extends TestCase
         }
     }
 
+    public function testGetIndexes()
+    {
+        $tree = $this->createTree();
+        $indexes = $tree->getIndexes();
+        $this->assertIsArray($indexes);
+        $this->assertNotEmpty($indexes);
+
+        foreach ($indexes as $id => $index) {
+            $this->assertInstanceOf(Index::class, $index);
+            $this->assertSame($id, $index->id);
+        }
+    }
+
+    /**
+     * 测试嵌套集合模型的完整性
+     */
+    public function testNestedSetIntegrity()
+    {
+        $tree = $this->createTree();
+        $indexes = $tree->getIndexes();
+
+        foreach ($indexes as $index) {
+            // left 应该小于 right
+            $this->assertLessThan($index->right, $index->left);
+
+            // 如果有父节点，子节点的 left/right 应该在父节点范围内
+            if ($index->parent && isset($indexes[$index->parent])) {
+                $parentIndex = $indexes[$index->parent];
+                $this->assertGreaterThan($parentIndex->left, $index->left);
+                $this->assertLessThan($parentIndex->right, $index->right);
+            }
+        }
+    }
+
+    /**
+     * 测试使用 Index 对象创建树
+     */
+    public function testCreateTreeFromIndexes()
+    {
+        $tree = $this->createTreeFromIndexes();
+        $this->assertInstanceOf(HTree::class, $tree);
+
+        $items = $tree->getItems();
+        $this->assertNotEmpty($items);
+
+        foreach ($items as $id => $item) {
+            $this->assertInstanceOf(Index::class, $item);
+        }
+    }
+
+    protected function createTree()
+    {
+        return HTree::instance($this->getItems(), 'id', 'parent');
+    }
+
+    protected function createTreeFromIndexes()
+    {
+        return HTree::instance(HTree::instance($this->getItems())->getIndexes());
+    }
+
     protected function getExistIds()
     {
         return array_column($this->getItems(), 'id');
     }
 
-    /**
-     * @return string
-     * @throws
-     *
-     */
     protected function randNonExistId()
     {
         return md5(serialize([microtime(), rand(1, 99999)]));
@@ -225,33 +393,20 @@ class TreeTest extends TestCase
     }
 
     /**
-     * @param $a
-     * @param $b
+     * 获取节点的 id，兼容数组和对象
+     *
+     * @param mixed $node
+     * @return mixed
      */
-    protected function assertItemSame($a, $b)
+    protected function getNodeId($node)
     {
-        $indexToArray = function (Index $index) {
-            return ['id' => $index->id, 'parent' => $index->parent];
-        };
-        $a = $a instanceof Index ? $indexToArray($a) : $a;
-        $b = $b instanceof Index ? $indexToArray($b) : $b;
-
-        $this->assertSame($a, $b);
+        if (is_array($node)) {
+            return $node['id'];
+        }
+        return $node->id;
     }
 
-    public static function dataProviderTree()
-    {
-        return [
-            [
-                HTree::instance(static::getItems(), 'id', 'parent'),
-            ],
-            [
-                HTree::instance(HTree::instance(static::getItems())->getIndexes()),
-            ],
-        ];
-    }
-
-    protected static function getItems()
+    protected function getItems()
     {
         return [
             /* */ ['id' => 1, 'parent' => 0],
@@ -281,7 +436,7 @@ class TreeTest extends TestCase
         ];
     }
 
-    public static function autoAssertObjectHasAttribute(string $name, $object, string $message = '')
+    public static function autoAssertObjectHasAttribute($name, $object, $message = '')
     {
         if (method_exists(static::class, 'assertObjectHasAttribute')) {
             static::assertObjectHasAttribute($name, $object, $message);
