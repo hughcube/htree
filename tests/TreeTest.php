@@ -233,6 +233,56 @@ class TreeTest extends TestCase
         $this->assertEmpty($emptyParents);
     }
 
+    public function testGetParentsByIds()
+    {
+        $tree = $this->createTree();
+
+        // 批量获取节点 5 和 9 的所有父节点
+        $parents = $tree->getParentsByIds([5, 9], false, true);
+        // 节点5的祖先: 1,2,3,4  节点9的祖先: 1,8
+        $this->assertContains(1, $parents);
+        $this->assertContains(2, $parents);
+        $this->assertContains(3, $parents);
+        $this->assertContains(4, $parents);
+        $this->assertContains(8, $parents);
+        // 不包含自身
+        $this->assertNotContains(5, $parents);
+        $this->assertNotContains(9, $parents);
+
+        // withSelf = true
+        $parentsWithSelf = $tree->getParentsByIds([5, 9], true, true);
+        $this->assertContains(5, $parentsWithSelf);
+        $this->assertContains(9, $parentsWithSelf);
+        $this->assertContains(1, $parentsWithSelf);
+
+        // 空数组
+        $empty = $tree->getParentsByIds([], false, true);
+        $this->assertEmpty($empty);
+
+        // 不存在的节点
+        $empty = $tree->getParentsByIds([$this->randNonExistId()], false, true);
+        $this->assertEmpty($empty);
+
+        // onlyId = false 返回节点数据
+        $nodesData = $tree->getParentsByIds([5], false, false);
+        foreach ($nodesData as $id => $item) {
+            $this->assertSame($id, $this->getNodeId($item));
+        }
+
+        // 结果去重：节点5和节点6有共同祖先时不重复
+        $parents5 = $tree->getParentsByIds([5], false, true);
+        $parents56 = $tree->getParentsByIds([5, 6], false, true);
+        $this->assertSame(count($parents5), count($parents56));
+
+        // startLevel / endLevel 过滤
+        $filtered = $tree->getParentsByIds([5, 9], false, true, 1, 2);
+        $this->assertContains(1, $filtered);
+        $this->assertContains(2, $filtered);
+        $this->assertContains(8, $filtered);
+        $this->assertNotContains(3, $filtered);
+        $this->assertNotContains(4, $filtered);
+    }
+
     public function testTreeSort()
     {
         $tree = $this->createTree();
@@ -1233,5 +1283,4 @@ class TreeTest extends TestCase
         $this->assertContains(1, $parents3);
         $this->assertNotContains(2, $parents3);
     }
-
 }
