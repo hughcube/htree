@@ -254,7 +254,7 @@ class TreeTest extends TestCase
 
         // 测试基本树形结构
         $treeData = $tree->getTree('children');
-        $this->assertIsArray($treeData);
+        $this->assertTrue(is_array($treeData));
         $this->assertNotEmpty($treeData);
 
         // 测试树的第一层
@@ -268,13 +268,13 @@ class TreeTest extends TestCase
                 'parent' => is_array($node) ? $node['parent'] : $node->parent,
             ];
         });
-        $this->assertIsArray($formattedTree);
+        $this->assertTrue(is_array($formattedTree));
 
         // 测试 keepEmptyChildrenKey 参数
         $treeWithEmpty = $tree->getTree('children', null, true);
         $treeWithoutEmpty = $tree->getTree('children', null, false);
-        $this->assertIsArray($treeWithEmpty);
-        $this->assertIsArray($treeWithoutEmpty);
+        $this->assertTrue(is_array($treeWithEmpty));
+        $this->assertTrue(is_array($treeWithoutEmpty));
     }
 
     public function testGetIndex()
@@ -307,7 +307,7 @@ class TreeTest extends TestCase
     {
         $tree = $this->createTree();
         $indexes = $tree->getIndexes();
-        $this->assertIsArray($indexes);
+        $this->assertTrue(is_array($indexes));
         $this->assertNotEmpty($indexes);
 
         foreach ($indexes as $id => $index) {
