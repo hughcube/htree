@@ -133,6 +133,53 @@ class TreeTest extends TestCase
         $this->assertEmpty($emptyChildren);
     }
 
+    public function testGetChildrenByNids()
+    {
+        $tree = $this->createTree();
+
+        // 批量获取节点 2 和 8 的所有子节点
+        $children = $tree->getChildrenByNids([2, 8], false, true);
+        // 节点2的子孙: 3,4,5,6,7
+        $this->assertContains(3, $children);
+        $this->assertContains(4, $children);
+        $this->assertContains(5, $children);
+        $this->assertContains(6, $children);
+        $this->assertContains(7, $children);
+        // 节点8的子孙: 9,10,11,12,13,14,15,16,17,18
+        $this->assertContains(9, $children);
+        $this->assertContains(10, $children);
+        $this->assertContains(14, $children);
+        // 不包含自身
+        $this->assertNotContains(2, $children);
+        $this->assertNotContains(8, $children);
+
+        // withSelf = true
+        $childrenWithSelf = $tree->getChildrenByNids([2, 8], true, true);
+        $this->assertContains(2, $childrenWithSelf);
+        $this->assertContains(8, $childrenWithSelf);
+        $this->assertContains(3, $childrenWithSelf);
+        $this->assertContains(9, $childrenWithSelf);
+
+        // 空数组
+        $empty = $tree->getChildrenByNids([], false, true);
+        $this->assertEmpty($empty);
+
+        // 不存在的节点
+        $empty = $tree->getChildrenByNids([$this->randNonExistId()], false, true);
+        $this->assertEmpty($empty);
+
+        // onlyId = false 返回节点数据
+        $nodesData = $tree->getChildrenByNids([2], false, false);
+        foreach ($nodesData as $id => $item) {
+            $this->assertSame($id, $this->getNodeId($item));
+        }
+
+        // 结果去重：两个节点有共同子孙时不重复
+        $children1 = $tree->getChildrenByNids([1], false, true);
+        $children12 = $tree->getChildrenByNids([1, 2], false, true);
+        $this->assertSame(count($children1), count($children12));
+    }
+
     public function testGetParent()
     {
         $tree = $this->createTree();

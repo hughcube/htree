@@ -241,13 +241,46 @@ class HTree
     }
 
     /**
-     * 获取节点的子节点.
+     * 批量获取多个节点的所有子节点.
      *
-     * @param  string  $nid  节点id
+     * @param  array  $nids  节点id数组
+     * @param  bool  $withSelf  结果是否包括自己
      * @param  bool  $onlyId  是否只返回 id
      * @param  null|int  $startLevel  往下多少级-起始, 为空不限制
      * @param  null|int  $endLevel  往下多少级-结束, 为空不限制
+     *
+     * @return array
+     */
+    public function getChildrenByNids(
+        array $nids,
+        $withSelf = false,
+        $onlyId = false,
+        $startLevel = null,
+        $endLevel = null
+    ) {
+        $nodes = [];
+
+        foreach ($nids as $nid) {
+            foreach ($this->getChildren($nid, $withSelf, false, $startLevel, $endLevel) as $id => $item) {
+                $nodes[$id] = $item;
+            }
+        }
+
+        if ($onlyId) {
+            return array_keys($nodes);
+        }
+
+        return $nodes;
+    }
+
+    /**
+     * 获取节点的子节点.
+     *
+     * @param  string  $nid  节点id
      * @param  bool  $withSelf  结果是否包括自己
+     * @param  bool  $onlyId  是否只返回 id
+     * @param  null|int  $startLevel  往下多少级-起始, 为空不限制
+     * @param  null|int  $endLevel  往下多少级-结束, 为空不限制
      *
      * @return array
      */
