@@ -104,6 +104,7 @@ class HTree
 
         foreach ($nodes as $node) {
             $children = $node[$childrenKey] ?? [];
+            unset($node[$childrenKey]);
             $node[$parentKey] = $parentId;
             $nodeId = is_object($node) ? $node->{$idKey} : $node[$idKey];
             $items[] = $node;

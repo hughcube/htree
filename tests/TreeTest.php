@@ -482,6 +482,11 @@ class TreeTest extends TestCase
         $this->assertTrue($hTree->hasItem(4));
         $this->assertTrue($hTree->hasItem(5));
         $this->assertCount(5, $hTree->getItems());
+
+        // 扁平化后节点不应包含 children key
+        foreach ($hTree->getItems() as $item) {
+            $this->assertArrayNotHasKey('children', $item);
+        }
     }
 
     public function testFromTreeParentRelationships()
