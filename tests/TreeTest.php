@@ -449,4 +449,181 @@ class TreeTest extends TestCase
         $reflection = new ReflectionClass($object);
         static::assertTrue($reflection->hasProperty($name));
     }
+
+    // ==================== fromTree tests ====================
+
+    public function testFromTreeBasic()
+    {
+        $tree = [
+            ['id' => 1, 'name' => 'root', 'children' => [
+                ['id' => 2, 'name' => 'child1', 'children' => [
+                    ['id' => 4, 'name' => 'grandchild1', 'children' => []],
+                    ['id' => 5, 'name' => 'grandchild2'],
+                ]],
+                ['id' => 3, 'name' => 'child2'],
+            ]],
+        ];
+
+        $hTree = HTree::fromTree($tree);
+        $this->assertInstanceOf(HTree::class, $hTree);
+
+        // 所有 5 个节点都存在
+        $this->assertTrue($hTree->hasItem(1));
+        $this->assertTrue($hTree->hasItem(2));
+        $this->assertTrue($hTree->hasItem(3));
+        $this->assertTrue($hTree->hasItem(4));
+        $this->assertTrue($hTree->hasItem(5));
+        $this->assertCount(5, $hTree->getItems());
+    }
+
+    public function testFromTreeParentRelationships()
+    {
+        $tree = [
+            ['id' => 1, 'name' => 'root', 'children' => [
+                ['id' => 2, 'name' => 'child1', 'children' => [
+                    ['id' => 4, 'name' => 'grandchild1'],
+                ]],
+                ['id' => 3, 'name' => 'child2'],
+            ]],
+        ];
+
+        $hTree = HTree::fromTree($tree);
+
+        // 根节点没有父节点
+        $rootParent = $hTree->getParent(1);
+        $this->assertNull($rootParent);
+
+        // child1 的父节点是 root
+        $parent = $hTree->getParent(2, true);
+        $this->assertSame(1, $parent);
+
+        // child2 的父节点是 root
+        $parent = $hTree->getParent(3, true);
+        $this->assertSame(1, $parent);
+
+        // grandchild1 的父节点是 child1
+        $parent = $hTree->getParent(4, true);
+        $this->assertSame(2, $parent);
+    }
+
+    public function testFromTreeChildrenRelationships()
+    {
+        $tree = [
+            ['id' => 1, 'name' => 'root', 'children' => [
+                ['id' => 2, 'name' => 'child1', 'children' => [
+                    ['id' => 4, 'name' => 'gc1'],
+                    ['id' => 5, 'name' => 'gc2'],
+                ]],
+                ['id' => 3, 'name' => 'child2'],
+            ]],
+        ];
+
+        $hTree = HTree::fromTree($tree);
+
+        // root 的所有子孙
+        $children = $hTree->getChildren(1, false, true);
+        $this->assertContains(2, $children);
+        $this->assertContains(3, $children);
+        $this->assertContains(4, $children);
+        $this->assertContains(5, $children);
+
+        // child1 的子节点
+        $children = $hTree->getChildren(2, false, true);
+        $this->assertContains(4, $children);
+        $this->assertContains(5, $children);
+        $this->assertNotContains(3, $children);
+
+        // 叶子节点没有子节点
+        $children = $hTree->getChildren(5, false, true);
+        $this->assertEmpty($children);
+    }
+
+    public function testFromTreeGetTreeRoundTrip()
+    {
+        $tree = [
+            ['id' => 1, 'name' => 'root', 'children' => [
+                ['id' => 2, 'name' => 'child1', 'children' => [
+                    ['id' => 4, 'name' => 'gc1'],
+                ]],
+                ['id' => 3, 'name' => 'child2'],
+            ]],
+        ];
+
+        $hTree = HTree::fromTree($tree);
+
+        // getTree 还原树形结构
+        $result = $hTree->getTree('children', function ($item) {
+            return ['id' => $item['id'], 'name' => $item['name']];
+        });
+
+        $this->assertCount(1, $result);
+        $this->assertSame(1, $result[0]['id']);
+        $this->assertCount(2, $result[0]['children']);
+
+        // 验证 child1 有 1 个子节点
+        $child1 = $result[0]['children'][0];
+        $this->assertSame(2, $child1['id']);
+        $this->assertCount(1, $child1['children']);
+        $this->assertSame(4, $child1['children'][0]['id']);
+
+        // 验证 child2 没有子节点
+        $child2 = $result[0]['children'][1];
+        $this->assertSame(3, $child2['id']);
+        $this->assertEmpty($child2['children']);
+    }
+
+    public function testFromTreeCustomKeys()
+    {
+        $tree = [
+            ['key' => 'root', 'title' => 'Root', 'items' => [
+                ['key' => 'a', 'title' => 'A', 'items' => [
+                    ['key' => 'a1', 'title' => 'A1'],
+                ]],
+                ['key' => 'b', 'title' => 'B'],
+            ]],
+        ];
+
+        $hTree = HTree::fromTree($tree, 'key', 'parent_key', 'items');
+
+        $this->assertTrue($hTree->hasItem('root'));
+        $this->assertTrue($hTree->hasItem('a'));
+        $this->assertTrue($hTree->hasItem('a1'));
+        $this->assertTrue($hTree->hasItem('b'));
+
+        $parent = $hTree->getParent('a1', true);
+        $this->assertSame('a', $parent);
+
+        $children = $hTree->getChildren('root', false, true);
+        $this->assertContains('a', $children);
+        $this->assertContains('b', $children);
+    }
+
+    public function testFromTreeEmptyInput()
+    {
+        $hTree = HTree::fromTree([]);
+        $this->assertInstanceOf(HTree::class, $hTree);
+        $this->assertEmpty($hTree->getItems());
+    }
+
+    public function testFromTreeMultipleRoots()
+    {
+        $tree = [
+            ['id' => 1, 'name' => 'root1', 'children' => [
+                ['id' => 3, 'name' => 'child1'],
+            ]],
+            ['id' => 2, 'name' => 'root2', 'children' => [
+                ['id' => 4, 'name' => 'child2'],
+            ]],
+        ];
+
+        $hTree = HTree::fromTree($tree);
+        $this->assertCount(4, $hTree->getItems());
+
+        $parent3 = $hTree->getParent(3, true);
+        $this->assertSame(1, $parent3);
+
+        $parent4 = $hTree->getParent(4, true);
+        $this->assertSame(2, $parent4);
+    }
+
 }

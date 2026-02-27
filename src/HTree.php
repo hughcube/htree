@@ -64,6 +64,59 @@ class HTree
     }
 
     /**
+     * 从嵌套 children 结构创建实例.
+     *
+     * 将 [{id: 1, children: [{id: 2, children: [...]}]}] 这样的嵌套结构
+     * 扁平化并自动添加 parentKey，然后构建 HTree。
+     *
+     * @param  array  $tree  嵌套树形结构数组
+     * @param  int|string  $idKey  id属性的名字
+     * @param  int|string  $parentKey  parent属性的名字（自动填充）
+     * @param  int|string  $childrenKey  children属性的名字
+     * @return static
+     */
+    public static function fromTree(
+        array $tree,
+        $idKey = 'id',
+        $parentKey = 'parent',
+        $childrenKey = 'children'
+    ) {
+        return static::instance(
+            static::flattenTree($tree, $idKey, $parentKey, $childrenKey, null),
+            $idKey,
+            $parentKey
+        );
+    }
+
+    /**
+     * 递归扁平化嵌套树结构.
+     *
+     * @param  array  $nodes
+     * @param  int|string  $idKey
+     * @param  int|string  $parentKey
+     * @param  int|string  $childrenKey
+     * @param  mixed  $parentId
+     * @return array
+     */
+    protected static function flattenTree(array $nodes, $idKey, $parentKey, $childrenKey, $parentId)
+    {
+        $items = [];
+
+        foreach ($nodes as $node) {
+            $children = $node[$childrenKey] ?? [];
+            $node[$parentKey] = $parentId;
+            $nodeId = is_object($node) ? $node->{$idKey} : $node[$idKey];
+            $items[] = $node;
+
+            if (!empty($children)) {
+                $items = array_merge($items, static::flattenTree($children, $idKey, $parentKey, $childrenKey, $nodeId));
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Tree constructor.
      *
      * @param  array  $items  构建树形结构的数组, 每个元素必需包含 id, parent 两个属性
