@@ -262,7 +262,7 @@ class HTree
         /* 先收集一次, 防止父 $nid 不存在不能被收集 */
         foreach ($this->items as $id => $item) {
             $parentValue = $this->getNodeProperty($item, $this->parentKey);
-            if ((string)$nid === (string)$parentValue) {
+            if (strval($nid) === strval($parentValue)) {
                 $parents[] = $id;
                 $nodes[$id] = $item;
             }
