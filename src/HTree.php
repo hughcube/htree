@@ -243,7 +243,7 @@ class HTree
     /**
      * 批量获取多个节点的所有子节点.
      *
-     * @param  array  $nids  节点id数组
+     * @param  array  $ids  节点id数组
      * @param  bool  $withSelf  结果是否包括自己
      * @param  bool  $onlyId  是否只返回 id
      * @param  null|int  $startLevel  往下多少级-起始, 为空不限制
@@ -251,41 +251,8 @@ class HTree
      *
      * @return array
      */
-    public function getChildrenByNids(
-        array $nids,
-        $withSelf = false,
-        $onlyId = false,
-        $startLevel = null,
-        $endLevel = null
-    ) {
-        $nodes = [];
-
-        foreach ($nids as $nid) {
-            foreach ($this->getChildren($nid, $withSelf, false, $startLevel, $endLevel) as $id => $item) {
-                $nodes[$id] = $item;
-            }
-        }
-
-        if ($onlyId) {
-            return array_keys($nodes);
-        }
-
-        return $nodes;
-    }
-
-    /**
-     * 获取节点的子节点.
-     *
-     * @param  string  $nid  节点id
-     * @param  bool  $withSelf  结果是否包括自己
-     * @param  bool  $onlyId  是否只返回 id
-     * @param  null|int  $startLevel  往下多少级-起始, 为空不限制
-     * @param  null|int  $endLevel  往下多少级-结束, 为空不限制
-     *
-     * @return array
-     */
-    public function getChildren(
-        $nid,
+    public function getChildrenByIds(
+        array $ids,
         $withSelf = false,
         $onlyId = false,
         $startLevel = null,
@@ -293,10 +260,16 @@ class HTree
     ) {
         $nodes = $parents = [];
 
-        /* 先收集一次, 防止父 $nid 不存在不能被收集 */
+        /* 构建查找集合, 用 hash 查找替代逐个比较 */
+        $idSet = [];
+        foreach ($ids as $id) {
+            $idSet[strval($id)] = $id;
+        }
+
+        /* 一次遍历收集所有匹配节点的直接子节点 */
         foreach ($this->items as $id => $item) {
             $parentValue = $this->getNodeProperty($item, $this->parentKey);
-            if (strval($nid) === strval($parentValue)) {
+            if (isset($idSet[strval($parentValue)])) {
                 $parents[] = $id;
                 $nodes[$id] = $item;
             }
@@ -326,8 +299,12 @@ class HTree
         }
 
         /* 是否返回自己本身 */
-        if ($withSelf && $this->hasItem($nid)) {
-            $nodes[$nid] = $this->getItem($nid);
+        if ($withSelf) {
+            foreach ($ids as $nid) {
+                if ($this->hasItem($nid)) {
+                    $nodes[$nid] = $this->getItem($nid);
+                }
+            }
         }
 
         /* 排序 */
@@ -346,6 +323,27 @@ class HTree
         }
 
         return $nodes;
+    }
+
+    /**
+     * 获取节点的子节点.
+     *
+     * @param  string  $nid  节点id
+     * @param  bool  $withSelf  结果是否包括自己
+     * @param  bool  $onlyId  是否只返回 id
+     * @param  null|int  $startLevel  往下多少级-起始, 为空不限制
+     * @param  null|int  $endLevel  往下多少级-结束, 为空不限制
+     *
+     * @return array
+     */
+    public function getChildren(
+        $nid,
+        $withSelf = false,
+        $onlyId = false,
+        $startLevel = null,
+        $endLevel = null
+    ) {
+        return $this->getChildrenByIds([$nid], $withSelf, $onlyId, $startLevel, $endLevel);
     }
 
     /**
