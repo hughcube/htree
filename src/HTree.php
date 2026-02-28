@@ -74,7 +74,9 @@ class HTree
      */
     public static function fromTree(array $tree, $idKey = 'id', $parentKey = 'parent', $childrenKey = 'children')
     {
-        return static::instance(static::flattenTree($tree, $idKey, $parentKey, $childrenKey, null), $idKey, $parentKey);
+        $items = static::flattenTree($tree, $idKey, $parentKey, $childrenKey, null);
+
+        return static::instance($items, $idKey, $parentKey);
     }
 
     /**
@@ -92,10 +94,15 @@ class HTree
         $items = [];
 
         foreach ($nodes as $node) {
-            $children = $node[$childrenKey] ?? [];
-            unset($node[$childrenKey]);
+            $children = is_object($node) ? ($node->{$childrenKey} ?? []) : ($node[$childrenKey] ?? []);
+
+            if (array_key_exists($childrenKey, $node)) {
+                unset($node[$childrenKey]);
+            }
+
             $node[$parentKey] = $parentId;
             $nodeId = is_object($node) ? $node->{$idKey} : $node[$idKey];
+
             $items[] = $node;
 
             if (!empty($children)) {

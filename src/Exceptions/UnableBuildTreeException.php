@@ -2,6 +2,7 @@
 
 namespace HughCube\HTree\Exceptions;
 
+use InvalidArgumentException;
 use Throwable;
 
 /**
