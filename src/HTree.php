@@ -94,14 +94,14 @@ class HTree
         $items = [];
 
         foreach ($nodes as $node) {
-            $children = is_object($node) ? ($node->{$childrenKey} ?? []) : ($node[$childrenKey] ?? []);
+            $children = static::getNodeProperty($node, $childrenKey, []);
 
             if (array_key_exists($childrenKey, $node)) {
                 unset($node[$childrenKey]);
             }
 
             $node[$parentKey] = $parentId;
-            $nodeId = is_object($node) ? $node->{$idKey} : $node[$idKey];
+            $nodeId = static::getNodeProperty($node, $idKey);
 
             $items[] = $node;
 
@@ -603,15 +603,16 @@ class HTree
      *
      * @param array|object $node
      * @param string $name
+     * @param mixed $default
      *
      * @return mixed
      */
-    private function getNodeProperty($node, $name)
+    protected static function getNodeProperty($node, $name, $default = null)
     {
         if (is_object($node)) {
-            return $node->{$name};
+            return isset($node->{$name}) ? $node->{$name} : $default;
         }
 
-        return $node[$name];
+        return array_key_exists($name, $node) ? $node[$name] : $default;
     }
 }
