@@ -55,6 +55,46 @@ class TreeTest extends TestCase
         $this->assertSame($tree->getItem($this->randNonExistId()), null);
     }
 
+    public function testOnlyItems()
+    {
+        $tree = $this->createTree();
+        $existIds = $this->getExistIds();
+
+        /* 空数组返回空数组 */
+        $this->assertSame([], $tree->onlyItems([]));
+
+        /* 单个存在的 id */
+        $firstId = $existIds[0];
+        $single = $tree->onlyItems([$firstId]);
+        $this->assertCount(1, $single);
+        $this->assertArrayHasKey($firstId, $single);
+        $this->assertSame($firstId, $this->getNodeId($single[$firstId]));
+
+        /* 多个存在的 id, 返回结果以 id 为键 */
+        $pickIds = array_slice($existIds, 0, min(3, count($existIds)));
+        $picked = $tree->onlyItems($pickIds);
+        $this->assertCount(count($pickIds), $picked);
+        foreach ($pickIds as $id) {
+            $this->assertArrayHasKey($id, $picked);
+            $this->assertSame($id, $this->getNodeId($picked[$id]));
+        }
+
+        /* 不存在的 id 被忽略 */
+        $nonExist = $this->randNonExistId();
+        $mixed = $tree->onlyItems([$firstId, $nonExist]);
+        $this->assertCount(1, $mixed);
+        $this->assertArrayHasKey($firstId, $mixed);
+        $this->assertArrayNotHasKey($nonExist, $mixed);
+
+        /* 全部不存在返回空数组 */
+        $this->assertSame([], $tree->onlyItems([$this->randNonExistId(), $this->randNonExistId()]));
+
+        /* 重复的 id 不会重复返回 */
+        $dup = $tree->onlyItems([$firstId, $firstId, $firstId]);
+        $this->assertCount(1, $dup);
+        $this->assertArrayHasKey($firstId, $dup);
+    }
+
     public function testHasItem()
     {
         $tree = $this->createTree();

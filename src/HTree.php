@@ -354,6 +354,27 @@ class HTree
     }
 
     /**
+     * 按 id 列表筛选节点的原始数据.
+     *
+     * 接收一个 id 数组, 返回这些 id 对应的节点数据.
+     * 不存在的 id 会被自动忽略, 返回结果保持以 id 为键的关联数组形式.
+     *
+     * @param array $ids 节点 id 数组
+     * @return array 以 id 为键的节点数据关联数组
+     */
+    public function onlyItems(array $ids)
+    {
+        $items = [];
+        foreach ($ids as $id) {
+            if (array_key_exists($id, $this->items)) {
+                $items[$id] = $this->items[$id];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * 判断是否存在指定 id 的节点.
      *
      * @param int|string $id 节点 id
